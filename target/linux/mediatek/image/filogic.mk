@@ -1967,7 +1967,8 @@ define Device/huasifei_wh5000
   DEVICE_DTS := mt7987a-huasifei-wh5000
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-usb3 mt7987-2p5g-phy-firmware \
-	kmod-mt7996e kmod-mt7990-firmware f2fsck mkf2fs
+	kmod-mt7996e kmod-mt7992-23-firmware f2fsck mkf2fs luci-app-qmodem luci-light kmod-usb3 \
+  kmod-usb-storage kmod-usb-storage-uas ntfs-3g block-mount
   KERNEL_LOADADDR := 0x40000000
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef

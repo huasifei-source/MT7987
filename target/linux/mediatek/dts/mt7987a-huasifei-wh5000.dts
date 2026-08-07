@@ -90,12 +90,16 @@
 };
 
 &gmac0 {
+	nvmem-cells = <&macaddr_factory_004>;
+	nvmem-cell-names = "mac-address";
 	phy-mode = "2500base-x";
 	phy-handle = <&phy0>;
 	status = "okay";
 };
 
 &gmac1 {
+	nvmem-cells = <&macaddr_factory_004>;
+	nvmem-cell-names = "mac-address";
 	phy-mode = "internal";
 	phy-handle = <&phy1>;
 	status = "okay";
@@ -163,6 +167,10 @@
 
 						eeprom_factory_0: eeprom@0 {
 							reg = <0x0 0x1e00>;
+						};
+
+						macaddr_factory_004: macaddr@4 {
+							reg = <0x4 0x6>;
 						};
 					};
 				};

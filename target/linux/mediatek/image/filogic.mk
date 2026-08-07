@@ -1968,7 +1968,8 @@ define Device/huasifei_wh5000
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-usb3 mt7987-2p5g-phy-firmware \
 	kmod-mt7996e kmod-mt7992-23-firmware f2fsck mkf2fs luci-app-qmodem luci-light kmod-usb3 \
-  luci-app-samba4 kmod-usb-storage kmod-usb-storage-uas ntfs-3g block-mount kmod-hwmon-pwmfan luci-app-fancontrol
+  luci-app-samba4 kmod-usb-storage kmod-usb-storage-uas ntfs-3g block-mount kmod-hwmon-pwmfan luci-app-fancontrol \
+  kmod-nft-offload kmod-nf-flow kmod-nf-conntrack kmod-nft-nat
   KERNEL_LOADADDR := 0x40000000
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef

@@ -38,6 +38,11 @@ huasifei,ws1610)
 	ucidef_add_qmodem_slot m2_0 type usb slot 2-1 alias m2_0 net_led green:5g sim_led green:sim1 gpio m2_reset_1 gpio_up 1 gpio_down 0 default_metric 5
 	ucidef_add_qmodem_slot minipci_0 type usb slot 1-1 alias minipci_0 net_led green:5g sim_led green:sim2 default_metric 10
 	;;
+huasifei,wh5000)
+    ucidef_set_qmodem_main enable_pcie_scan 0 start_delay 9
+    ucidef_add_qmodem_slot wwan0_u3 type usb slot 2-1.4 alias wwan0 default_metric 5
+    ucidef_add_qmodem_slot wwan0_u2 type usb slot 1-1.4 alias wwan0 default_metric 5
+    ;;
 ailf,gs2410|\
 huasifei,ws3006)
 	ucidef_add_qmodem_slot 5g1 type usb slot 2-1.2 alias 5g1 net_led green:5g2 sim_led green:sim2 gpio m2_reset_2 gpio_up 1 gpio_down 0 default_metric 5

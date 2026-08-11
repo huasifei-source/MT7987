@@ -33,6 +33,10 @@ modem_settings()
 		add_ipv4_config "4g3" 10 1
 		uci commit qmodem_mwan
 		;;
+	huasifei,wh5000)
+		add_ipv4_config "wwan0" 10 1
+		uci commit qmodem_mwan
+		;;
 	
 	esac
 }

@@ -1,0 +1,118 @@
+#!/bin/sh
+# WS1610-Z: Dual WAN configuration
+# - Add wanb to firewall WAN zone
+# - Set network interface metrics (wan=1, wanb=2)
+# - Clean up IPv6 from mwan3, fix member metrics and tracking IPs
+
+. /lib/functions.sh
+
+case "$(board_name)" in
+	huasifei,ws1610)
+		# --- Firewall: add wanb to WAN zone ---
+		for z in $(uci show firewall | grep "=zone$" | cut -d= -f1); do
+			if [ "$(uci get ${z}.name)" = "wan" ]; then
+				uci add_list ${z}.network='wanb'
+			fi
+		done
+
+		# --- Network: set interface metrics ---
+		uci set network.wan.metric='1'
+		uci set network.wanb.metric='2'
+
+		# --- mwan3: enable wanb ---
+		uci set mwan3.wanb.enabled='1'
+
+		# --- mwan3: remove IPv6 members from all policies ---
+		for p in balanced wan_only wanb_only wan_wanb wanb_wan; do
+			uci -q del_list mwan3.${p}.use_member='wan6_m1_w3'
+			uci -q del_list mwan3.${p}.use_member='wan6_m2_w3'
+			uci -q del_list mwan3.${p}.use_member='wanb6_m1_w2'
+			uci -q del_list mwan3.${p}.use_member='wanb6_m1_w3'
+			uci -q del_list mwan3.${p}.use_member='wanb6_m2_w2'
+		done
+
+		# --- mwan3: delete IPv6 member sections ---
+		uci -q delete mwan3.wan6_m1_w3
+		uci -q delete mwan3.wan6_m2_w3
+		uci -q delete mwan3.wanb6_m1_w2
+		uci -q delete mwan3.wanb6_m1_w3
+		uci -q delete mwan3.wanb6_m2_w2
+
+		# --- mwan3: delete IPv6 interface sections ---
+		uci -q delete mwan3.wan6
+		uci -q delete mwan3.wanb6
+
+		# --- mwan3: delete IPv6 default rule ---
+		uci -q delete mwan3.default_rule_v6
+
+		# --- mwan3: fix wanb member metric (1 -> 2) ---
+		uci set mwan3.wanb_m1_w3.metric='2'
+
+		# --- mwan3: fix balanced policy for true load balancing ---
+		# balanced 默认用 wanb_m1_w3 (metric=2)，与 wan_m1_w3 (metric=1) 不同级
+		# 结果是主备而非负载均衡。换成 wanb_m1_w2 (metric=1) 实现真正的负载均衡
+		uci -q del_list mwan3.balanced.use_member='wanb_m1_w3'
+		uci add_list mwan3.balanced.use_member='wanb_m1_w2'
+
+		# --- mwan3: disable HTTPS sticky ---
+		# sticky=1 会将所有到同一 IP 的 443 连接粘在一条 WAN 上
+		# aria2c 多连接到同一服务器时无法触发负载均衡
+		uci set mwan3.https.sticky='0'
+
+		# --- mwan3: fix tracking IPs ---
+		uci -q delete mwan3.wan.track_ip
+		uci add_list mwan3.wan.track_ip='8.8.8.8'
+		uci add_list mwan3.wan.track_ip='180.76.76.76'
+		uci -q delete mwan3.wanb.track_ip
+		uci add_list mwan3.wanb.track_ip='8.8.8.8'
+		uci add_list mwan3.wanb.track_ip='180.76.76.76'
+
+		uci commit firewall
+		uci commit network
+		uci commit mwan3
+		;;
+	huasifei,ws3006|\
+	huasifei,wh5000)
+        # --- Network: set wan metric (must be < modem lowest metric=5) ---
+        uci set network.wan.metric='4'
+
+        # --- mwan3: delete default unused interfaces ---
+		uci -q delete mwan3.wan
+		uci -q delete mwan3.wan6
+        uci -q delete mwan3.wanb
+        uci -q delete mwan3.wanb6
+
+        # --- mwan3: delete default member sections ---
+        uci -q delete mwan3.wan_m1_w3
+        uci -q delete mwan3.wan_m2_w3
+        uci -q delete mwan3.wanb_m1_w2
+        uci -q delete mwan3.wanb_m1_w3
+        uci -q delete mwan3.wanb_m2_w2
+        uci -q delete mwan3.wan6_m1_w3
+        uci -q delete mwan3.wan6_m2_w3
+        uci -q delete mwan3.wanb6_m1_w2
+        uci -q delete mwan3.wanb6_m1_w3
+        uci -q delete mwan3.wanb6_m2_w2
+
+        # --- mwan3: delete default policies ---
+        uci -q delete mwan3.wan_only
+        uci -q delete mwan3.wanb_only
+        uci -q delete mwan3.balanced
+        uci -q delete mwan3.wan_wanb
+        uci -q delete mwan3.wanb_wan
+
+        # --- mwan3: delete default rules (conflict with qmodem ipv4_rule) ---
+        uci -q delete mwan3.https
+        uci -q delete mwan3.default_rule_v4
+        uci -q delete mwan3.default_rule_v6
+
+		# --- mwan3: default mwan3 stop
+		uci del qmodem_mwan.global.enable_mwan
+		uci set qmodem_mwan.global.sticky_mode='0'
+
+        uci commit network
+        uci commit mwan3
+        ;;
+esac
+
+exit 0
